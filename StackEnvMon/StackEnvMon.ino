@@ -1,7 +1,7 @@
 #include <OneWire.h>
 
 // Sketch to run on Arduino (Uno)
-// for monitoring of Stacken Computer Club server room
+// monitoring environment in Stacken Computer Club server room
 // using one or more DS18[S]20 Temperature sensors
 // and a Light Dependent Resistor to detect lights on/off
 
@@ -18,7 +18,7 @@ OneWire  ds(12);  // on pin 12 - RJ45 Twisted Pair connector
 
 void setup(void) {
   Serial.begin(9600);
-  Serial.print("0 Stacktemp V1.0 stellanl@stacken.kth.se\n");
+  Serial.print("0 StackEnvMon V1.0 stellanl@stacken.kth.se\n");
 }
 
 
@@ -30,6 +30,7 @@ void pa(byte *addr){
   Serial.print(" ");
 }
 
+
 void loop(void) {
   byte i;
   byte present = 0;
@@ -37,9 +38,11 @@ void loop(void) {
   byte addr[8];
   
   if ( !ds.search(addr)) {
+      //We have read all the temp sensors
       Serial.print("0 No more addresses.\n");
       ds.reset_search();
       delay(250);
+      //Read and send light level
       int light = analogRead(A0);
       Serial.print("2 0 ");
       Serial.print(light,DEC);
@@ -52,18 +55,16 @@ void loop(void) {
       return;
   }
 
-  //addr ok, go get data  
+  //address ok
 
-  if ( addr[0] != 0x10) {//add to this for DS18B22 etc
+  if ( addr[0] != 0x10) {//todo: support for DS18B22
       Serial.print("-2 ");
       pa(addr);
       Serial.print("Device is not a DS18S20 family device.\n");
       return;
   }
 
-
-  // The DallasTemperature library can do all this work for you!
-
+  //sensor ok, get data
   ds.reset();
   ds.select(addr);
 //  ds.write(0x44,1);         // start conversion, with parasite power on at the end
@@ -76,14 +77,9 @@ void loop(void) {
   ds.select(addr);    
   ds.write(0xBE);         // Read Scratchpad
 
-  //Serial.print("P=");
-//  Serial.print(" ");
-//  Serial.print(present,HEX);
-//  Serial.print(" ");
-
   for ( i = 0; i < 9; i++) {           // we need 9 bytes
     data[i] = ds.read();
-//    Serial.print(data[i], HEX);//later hide this
+//    Serial.print(data[i], HEX);//DEBUG
 //    Serial.print(" ");
   }
   //check CRC
@@ -94,16 +90,13 @@ void loop(void) {
       return;
   }
 
-  //decode and show basic temp
+  //decode and send temperature
   float t = ((data[0] & 0xfe) + 256*data[1])/2.0
            - 0.25 + (16-data[6])/16.0;
   Serial.print("1 ");//this is temp
   pa(addr);
   Serial.print(t);
-//  Serial.print(" ");
-//  Serial.print(data[6],DEC);//count remain
-//  Serial.print(" ");
-//  Serial.print(data[7],DEC);//count per C, always 16
   //end of the line
   Serial.print("\n");
 }
+
