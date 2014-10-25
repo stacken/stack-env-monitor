@@ -1,8 +1,10 @@
 #include <OneWire.h>
+#include <DHT.h>
 
 // Sketch to run on Arduino (Uno)
 // monitoring environment in Stacken Computer Club server room
-// using one or more DS18[S]20 Temperature sensors
+// using one or more Dallas DS18[S]20 temperature sensors,
+// a DHT22 Temp+Humidity sensor
 // and a Light Dependent Resistor to detect lights on/off
 
 //Outputs serial lines in these formats:
@@ -11,14 +13,16 @@
 // n <sp> data for type n:
 //  1 sensor-addr(8HEX) temp(float w decimal point)
 //  2 0 light-level(int 0..1023, close to 0 in darkness)
+//  3 0 temp(float) humidity(???)
 
 OneWire  ds(12);  // on pin 12 - RJ45 Twisted Pair connector
-//OneWire  ds2(8);  // on pin 8 - coax
+DHT  dht(8, DHT22);  // on pin 8 - coax cable
 //LDR is connected from +3.3 to Analog 0, with a resistor to ground.
 
 void setup(void) {
   Serial.begin(9600);
-  Serial.print("0 StackEnvMon V1.0 stellanl@stacken.kth.se\n");
+  Serial.print("0 StackEnvMon V2.0 stellanl@stacken.kth.se\n");
+  dht.begin();
 }
 
 
@@ -47,6 +51,27 @@ void loop(void) {
       Serial.print("2 0 ");
       Serial.print(light,DEC);
       Serial.print("\n");
+      
+      // Wait a few seconds extra for DHT22 in case we had no DS sensors.
+      delay(2000);
+    
+      // Reading temperature or humidity takes about 250 milliseconds!
+      // Sensor readings may also be up to 2 seconds 'old' (its a very slow sensor)
+      float h = dht.readHumidity();
+      // Read temperature as Celsius
+      float t = dht.readTemperature();
+      
+      // Check if any reads failed and exit early (to try again).
+      if (isnan(h) || isnan(t)) {
+        Serial.println("-4 Failed to read from DHT sensor!");
+        return;
+      }
+      Serial.print("3 0 ");
+      Serial.print(t);
+      Serial.print(" ");
+      Serial.print(h);
+      Serial.print("\n");
+      
       return;
   }
   
