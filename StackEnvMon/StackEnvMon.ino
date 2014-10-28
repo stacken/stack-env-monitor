@@ -13,7 +13,7 @@
 // n <sp> data for type n:
 //  1 sensor-addr(8HEX) temp(float w decimal point)
 //  2 0 light-level(int 0..1023, close to 0 in darkness)
-//  3 0 temp(float) humidity(???)
+//  3 temp(float) humidity(float 0.0 .. 100.0)
 
 OneWire  ds(12);  // on pin 12 - RJ45 Twisted Pair connector
 DHT  dht(8, DHT22);  // on pin 8 - coax cable
@@ -66,7 +66,7 @@ void loop(void) {
         Serial.println("-4 Failed to read from DHT sensor!");
         return;
       }
-      Serial.print("3 0 ");
+      Serial.print("3 ");
       Serial.print(t);
       Serial.print(" ");
       Serial.print(h);
