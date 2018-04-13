@@ -14,6 +14,7 @@
 //  1 sensor-addr(8HEX) temp(float w decimal point)
 //  2 0 light-level(int 0..1023, close to 0 in darkness)
 //  3 temp(float) humidity(float 0.0 .. 100.0)
+//  4 0 doorlock(int 0..1023)
 
 OneWire  ds(12);  // on pin 12 - RJ45 Twisted Pair connector
 DHT  dht(8, DHT22);  // on pin 8 - coax cable
@@ -21,7 +22,7 @@ DHT  dht(8, DHT22);  // on pin 8 - coax cable
 
 void setup(void) {
   Serial.begin(9600);
-  Serial.print("0 StackEnvMon V2.0 stellanl@stacken.kth.se\n");
+  Serial.print("0 StackEnvMon V3.0 stellanl@stacken.kth.se\n");
   dht.begin();
 }
 
@@ -46,10 +47,14 @@ void loop(void) {
       Serial.print("0 No more addresses.\n");
       ds.reset_search();
       delay(250);
-      //Read and send light level
+      //Read and send light+lock level
       int light = analogRead(A0);
       Serial.print("2 0 ");
       Serial.print(light,DEC);
+      Serial.print("\n");
+      int lock = analogRead(A2);
+      Serial.print("4 0 ");
+      Serial.print(lock,DEC);
       Serial.print("\n");
       
       // Wait a few seconds extra for DHT22 in case we had no DS sensors.
